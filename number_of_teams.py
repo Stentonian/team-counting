@@ -1,13 +1,17 @@
 """
 We have N people, and teams of size 1,2,3,...,t
-We want the probability of k teams occurring.
 
-Example:
-for N=10 and only teams of size 1 & 2
-1. first, put everyone into 1 team; there are 10 teams then, and only 1 possible configuration
+We want the probability of k teams occurring,
+assuming that people form teams of any allowable size at random.
+
+This problem is similar to how Boltzman defined entropy using statistical mechanics.
+
+Example counting procedure:
+for N=10 and only teams of size 1 & 2 (t=2)
+1. first, put everyone into a size-1 team (singles); there are 10 teams then, and only 1 possible configuration
 2. next, have 1 team of 2 and the rest singles; there are 9 teams then, and nCr(10,2) possible configurations
 3. ...
-So we have a map of num_teams->count
+So we have a map of num_teams -> num_combinations
 """
 
 from itertools import combinations
@@ -18,21 +22,26 @@ from decimal import Decimal
 
 def count_teams_size_2(N):
     """
-    Here is the problem simplified to just picking teams of size 1 & 2.
+    Here is the problem simplified to just picking teams of size 1 & 2 (t=2).
 
     This gives us the formula of how to count the number of ways of splitting P people into teams of 2:
     https://math.stackexchange.com/questions/1234696/number-of-ways-you-can-form-pairs-with-a-group-of-people-when-certain-people-can
 
-    We have to loop from 1 team of 2 to 5 teams of 2, and use the above formula for each iteration.
+    We have to loop from 0 teams of 2 to N/2 teams of 2, and use the above formula for each iteration.
     """
+
+    # map of num_teams -> num_combinations
     counts_size_2 = [0] * (1 + N)
 
+    # count the total ways of ordering 2n people into teams of 2
     num_teams_of_size_2 = lambda n: \
         math.factorial(2*n) / (math.factorial(n) * 2**n)
 
+    # i is the number of teams of size 2
     for i in range(0, N // 2 + 1):
-        # num_teams_size_2 + num_teams_size_1
+        # total teams = num_teams_size_2 + num_teams_size_1
         num_teams = i + (N - 2 * i)
+        # number of ways we can get this configuration
         count = math.comb(N, 2 * i) * num_teams_of_size_2(i)
         counts_size_2[num_teams] += count
 
@@ -41,24 +50,30 @@ def count_teams_size_2(N):
 
 def count_teams_size_3(N):
     """
-    Here is the problem simplified to just picking teams of size 1, 2 & 3.
+    Here is the problem simplified to just picking teams of size 1, 2 & 3 (t=3).
 
     We have to update our counting formula:
     https://math.stackexchange.com/questions/2663826/counting-the-number-of-ways-to-partition-n-integers-to-n-3-triples
 
     We also change our loop to first loop over teams of 3, then of 2
     """
+
+    # map of num_teams -> num_combinations
     counts_size_3 = [0] * (1 + N)
 
+    # count the total ways of ordering 2n people into teams of 2
     num_teams_of_size_2 = lambda n: \
         math.factorial(2*n) / (math.factorial(n) * 2**n)
 
+    # count the total ways of ordering 3n people into teams of 3
     num_teams_of_size_3 = lambda n: \
         math.factorial(3*n) / (math.factorial(n) * math.factorial(3)**n)
 
+    # i is the number of teams of size 3
     for i in range(0, N // 3 + 1):
+        # j is the number of teams of size 2
         for j in range(0, (N - 3 * i) // 2 + 1):
-            # num_teams_size_3 + num_teams_size_2 + num_teams_size_1
+            # total teams = num_teams_size_3 + num_teams_size_2 + num_teams_size_1
             num_teams = i + j + (N - 3 * i - 2 * j)
 
             count = math.comb(N, 3 * i) * num_teams_of_size_3(i)
